@@ -28,7 +28,7 @@
 #include <argp.h>
 #include <dirent.h>
 #include <stdlib.h>
-#include <string.h>
+#include <bsd/string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -100,9 +100,9 @@ int find_git(char* path, size_t path_length) {
                 return ERANGE;
             }
 
-            memcpy(path, dir, dir_length);
+            strlcpy(path, dir, path_length);
             path[dir_length] = '/';
-            memcpy(path + dir_length + 1, GIT, git_length);
+            strlcpy(path + dir_length + 1, GIT, path_length - dir_length - 1);
             return 0;
         } else if (ENOENT == result) {
             continue; // Not found, but keep going
