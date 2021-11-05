@@ -30,6 +30,9 @@ executable(
   'git-touch',
   'git-touch.c',
   c_args: ['-Wall', '-Wextra', '-Werror', '-O3'],
+  install: true,
 )
+
+install_data('LICENSE', install_dir: 'usr/share/licenses/git-touch')
 
 ###############################################################################
