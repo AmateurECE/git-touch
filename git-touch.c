@@ -29,7 +29,9 @@
 #include <bsd/string.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -66,6 +68,7 @@ static error_t parse_opt(int key, char* arg, struct argp_state* state) {
 
 static struct argp argp = {0, parse_opt, args_doc, doc, 0, 0, 0};
 
+// Check to see if the git executable is in this directory
 int git_in_dir(const char* path) {
     struct dirent* entry = NULL;
     DIR* directory = opendir(path);
@@ -86,6 +89,7 @@ int git_in_dir(const char* path) {
     return ENOENT;
 }
 
+// Find git in the environment
 int find_git(char* path, size_t path_length) {
     char* env_path = getenv("PATH");
     char* dir = NULL;
@@ -115,6 +119,42 @@ int find_git(char* path, size_t path_length) {
     return ENOENT;
 }
 
+// Create any parent directories above path, if they do not exist.
+int create_parents(const char* path) {
+    char* copy_path = strdup(path);
+    char* dirname_path = dirname(copy_path);
+
+    // If the parent of `path` exists, we don't need to do anything
+    struct stat parent_stat = {0};
+    errno = 0;
+    int result = stat(dirname_path, &parent_stat);
+    if (0 != result && (errno ^ ENOENT)) {
+        perror("Couldn't check existence of parent directory");
+        free(copy_path);
+        return result;
+    } else if (0 == result) {
+        free(copy_path);
+        return 0;
+    }
+
+    // Create any other parent path components before attempting to create the
+    // parent of `path`.
+    result = create_parents(dirname_path);
+    if (0 != result) {
+        free(copy_path);
+        return result;
+    }
+
+    // Now that all parents exist, create this directory.
+    result = mkdir(dirname_path, 0777);
+    free(copy_path);
+    if (0 != result) {
+        perror("Couldn't create parent directory");
+    }
+    return result;
+}
+
+// Create the file, if it does not already exist.
 int create_file(const char* path) {
     errno = 0;
     int fd = open(path, O_CREAT | O_EXCL | O_WRONLY);
@@ -133,7 +173,12 @@ int main(int argc, char** argv) {
     char* filename;
     argp_parse(&argp, argc, argv, 0, 0, &filename);
 
-    int result = create_file(filename);
+    int result = create_parents(filename);
+    if (result) {
+        return result;
+    }
+
+    result = create_file(filename);
     if (result) {
         return result;
     }
