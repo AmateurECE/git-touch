@@ -7,7 +7,7 @@
 //
 // CREATED:         11/04/2021
 //
-// LAST EDITED:     11/04/2021
+// LAST EDITED:     10/29/2022
 //
 // Copyright 2021, Ethan D. Twardy
 //
@@ -31,6 +31,7 @@
 #include <bsd/string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 const char* argp_program_version = "git-touch 0.1.0";
 const char* argp_program_bug_address = "<ethan.twardy@gmail.com>";
@@ -114,17 +115,32 @@ int find_git(char* path, size_t path_length) {
     return ENOENT;
 }
 
+int create_file(const char* path) {
+    errno = 0;
+    int fd = open(path, O_CREAT | O_EXCL | O_WRONLY);
+    if (0 > fd && (errno & EEXIST)) {
+        fprintf(stderr, "File exists, ignoring request to create.\n");
+    } else if (0 > fd) {
+        perror("Couldn't create file");
+        return 1;
+    }
+
+    close(fd);
+    return 0;
+}
+
 int main(int argc, char** argv) {
     char* filename;
     argp_parse(&argp, argc, argv, 0, 0, &filename);
 
-    // Create the file
-    FILE* file = fopen(filename, "w");
-    fclose(file);
+    int result = create_file(filename);
+    if (result) {
+        return result;
+    }
 
     // Locate git in PATH
     char git_path[PATH_MAX];
-    int result = find_git(git_path, PATH_MAX);
+    result = find_git(git_path, PATH_MAX);
     if (0 != result) {
         perror("Couldn't find git executable in path");
         return errno;
