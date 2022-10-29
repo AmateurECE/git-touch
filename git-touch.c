@@ -157,7 +157,7 @@ int create_parents(const char* path) {
 // Create the file, if it does not already exist.
 int create_file(const char* path) {
     errno = 0;
-    int fd = open(path, O_CREAT | O_EXCL | O_WRONLY);
+    int fd = open(path, O_CREAT | O_EXCL | O_WRONLY, 0644);
     if (0 > fd && (errno & EEXIST)) {
         fprintf(stderr, "File exists, ignoring request to create.\n");
     } else if (0 > fd) {
