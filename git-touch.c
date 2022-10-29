@@ -35,7 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-const char* argp_program_version = "git-touch 0.2.0";
+const char* argp_program_version = "git-touch 0.2.1";
 const char* argp_program_bug_address = "<ethan.twardy@gmail.com>";
 
 static char doc[] = "Create and track changes to files with a single command";
