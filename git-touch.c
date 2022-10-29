@@ -26,12 +26,12 @@
 ////
 
 #include <argp.h>
-#include <dirent.h>
-#include <stdlib.h>
 #include <bsd/string.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 const char* argp_program_version = "git-touch 0.1.0";
 const char* argp_program_bug_address = "<ethan.twardy@gmail.com>";
@@ -64,7 +64,7 @@ static error_t parse_opt(int key, char* arg, struct argp_state* state) {
     return 0;
 }
 
-static struct argp argp = { 0, parse_opt, args_doc, doc, 0, 0, 0 };
+static struct argp argp = {0, parse_opt, args_doc, doc, 0, 0, 0};
 
 int git_in_dir(const char* path) {
     struct dirent* entry = NULL;
@@ -146,8 +146,8 @@ int main(int argc, char** argv) {
         return errno;
     }
 
-    char* args[] = { git_path, "add", filename, NULL };
-    char* envp[] = { NULL };
+    char* args[] = {git_path, "add", filename, NULL};
+    char* envp[] = {NULL};
     execve(git_path, args, envp);
 }
 
